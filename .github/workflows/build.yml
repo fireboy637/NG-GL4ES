@@ -42,7 +42,6 @@ jobs:
 
       - name: Configure CMake and Build iOS
         run: |
-          cd src/main/cpp 
           wget https://github.com/leetal/ios-cmake/raw/master/ios.toolchain.cmake
           cmake -B build \
             -DCMAKE_TOOLCHAIN_FILE=ios.toolchain.cmake \
@@ -57,4 +56,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: NG-GL4ES-iOS-dylib
-          path: /Users/runner/work/NG-GL4ES/NG-GL4ES/src/main/cpp/build/*.dylib
+          path: /Users/runner/work/NG-GL4ES/NG-GL4ES/src/build/*.dylib
