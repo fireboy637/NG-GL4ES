@@ -1,0 +1,60 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build-android:
+    # The CMake configure and build commands are platform agnostic and should work equally
+    # well on Windows or Mac.  You can convert this to a matrix build if you need
+    # cross-platform coverage.
+    # See: https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#configuring-a-build-matrix
+    runs-on: ubuntu-24.04
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    - name: Configure CMake and Build Android
+      run: bash android_ci_build.bash
+
+    - name: Upload build Android output
+      uses: actions/upload-artifact@v4
+      with:
+        name: NG-GL4ES-Android-solib
+        path: build/*.so
+
+  # https://github.com/MobileGL-Dev/NG-GL4ES/blob/dev-es/.github/workflows/build.yml
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Configure CMake and Build iOS
+        run: |
+          cd src/main/cpp 
+          wget https://github.com/leetal/ios-cmake/raw/master/ios.toolchain.cmake
+          cmake -B build \
+            -DCMAKE_TOOLCHAIN_FILE=ios.toolchain.cmake \
+            -DSTATICLIB=OFF \
+            -DMACOS=ON \
+            -DPLATFORM=OS64 \
+            -DCMAKE_C_FLAGS=-Wno-error=implicit-function-declaration
+          cmake --build build --config RelWithDebInfo --target NG-GL4ES
+          codesign -s - build/libng_gl4es.dylib
+
+      - name: Upload build iOS output
+        uses: actions/upload-artifact@v4
+        with:
+          name: NG-GL4ES-iOS-dylib
+          path: /Users/runner/work/NG-GL4ES/NG-GL4ES/src/main/cpp/build/*.dylib
